@@ -1,0 +1,418 @@
+:root {
+  --navy: #0b1e3f;
+  --ink: #111;
+  --black: #0a0a0a;
+  --green: #2e9b58;
+  --green-dark: #0f7b3f;
+  --mint: #b8edc8;
+  --mint-soft: #e3f5ea;
+  --cream: #fdfaf4;
+  --off-white: #fafaf7;
+  --white: #fff;
+  --border: rgba(0, 0, 0, 0.08);
+  --gray-400: #9a9a9a;
+  --gray-500: #6b6b6b;
+  --gray-600: #555;
+  --hero-grad: linear-gradient(115deg, #dceeff 0%, #e5f5ea 60%, #c9f0d6 100%);
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+html {
+  scroll-behavior: smooth;
+}
+html,
+body {
+  margin: 0;
+  padding: 0;
+}
+body {
+  font-family: "Inter Tight", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  color: var(--ink);
+  background: var(--white);
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+}
+a {
+  color: inherit;
+  text-decoration: none;
+}
+img {
+  display: block;
+  max-width: 100%;
+  height: auto;
+}
+button {
+  font-family: inherit;
+}
+
+/* Header */
+.site-header {
+  padding: 20px 24px;
+}
+.header-inner {
+  max-width: 1180px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+.site-header .logo {
+  height: 34px;
+  width: auto;
+}
+
+/* Hero — deliberately quiet, per the brief: one line of context, not a pitch */
+.hero {
+  background: var(--hero-grad);
+  padding: 24px 24px 56px;
+  text-align: center;
+}
+.hero-inner {
+  max-width: 720px;
+  margin: 0 auto;
+}
+.hero-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(255, 255, 255, 0.7);
+  border: 1px solid rgba(15, 123, 63, 0.18);
+  color: var(--green-dark);
+  padding: 7px 15px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  margin-bottom: 20px;
+}
+.hero-eyebrow .pulse {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--green);
+  animation: pulse 2.4s infinite;
+}
+@keyframes pulse {
+  0% { box-shadow: 0 0 0 0 rgba(46, 155, 88, 0.45); }
+  70% { box-shadow: 0 0 0 9px rgba(46, 155, 88, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(46, 155, 88, 0); }
+}
+.hero h1 {
+  font-size: clamp(34px, 6vw, 56px);
+  line-height: 1.05;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  margin: 0 0 14px;
+}
+.hero p.lead {
+  font-size: clamp(15px, 1.8vw, 18px);
+  color: #1c2733;
+  margin: 0 auto;
+  max-width: 560px;
+}
+.last-updated {
+  margin-top: 18px;
+  font-size: 12.5px;
+  color: var(--gray-600);
+}
+
+/* Talent grid */
+.talent {
+  background: var(--off-white);
+  padding: clamp(40px, 5vw, 64px) clamp(16px, 3vw, 32px) clamp(56px, 7vw, 90px);
+}
+.t-wrap {
+  max-width: 1180px;
+  margin: 0 auto;
+}
+.t-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 18px;
+}
+@media (min-width: 560px) {
+  .t-grid { grid-template-columns: repeat(2, 1fr); }
+}
+@media (min-width: 920px) {
+  .t-grid { grid-template-columns: repeat(3, 1fr); }
+}
+
+.t-card {
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  transition: transform 0.35s cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 0.35s, border-color 0.25s;
+}
+.t-card:hover {
+  transform: translateY(-3px);
+  border-color: var(--mint);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04), 0 12px 30px rgba(184, 237, 200, 0.4);
+}
+.t-media {
+  position: relative;
+  display: block;
+  aspect-ratio: 4 / 3;
+  background: var(--mint-soft);
+  overflow: hidden;
+}
+.t-ph {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--green);
+  font-size: clamp(40px, 7vw, 56px);
+  font-weight: 800;
+}
+.t-media img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center 22%;
+  z-index: 1;
+}
+.t-watch {
+  position: absolute;
+  bottom: 10px;
+  left: 10px;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  background: rgba(10, 10, 10, 0.74);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 700;
+  padding: 6px 11px 6px 9px;
+  border-radius: 999px;
+  backdrop-filter: blur(3px);
+  z-index: 2;
+}
+.t-card:hover .t-watch {
+  background: var(--green);
+}
+.t-play-ic {
+  width: 0;
+  height: 0;
+  border-style: solid;
+  border-width: 5px 0 5px 8px;
+  border-color: transparent transparent transparent #fff;
+}
+.t-body {
+  padding: 16px 16px 18px;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  gap: 4px;
+}
+.t-name {
+  font-size: 18px;
+  font-weight: 800;
+  margin: 0;
+}
+.t-role {
+  font-size: 13.5px;
+  color: var(--gray-600);
+  margin: 0;
+}
+.t-meta {
+  font-size: 12.5px;
+  color: var(--green-dark);
+  font-weight: 700;
+  margin: 2px 0 0;
+}
+.t-summary {
+  font-size: 13px;
+  color: var(--gray-600);
+  margin: 6px 0 0;
+  flex: 1;
+}
+.t-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 14px;
+}
+.t-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 1;
+  background: var(--black);
+  color: #fff;
+  font-size: 13.5px;
+  font-weight: 700;
+  padding: 11px;
+  border-radius: 11px;
+  border: none;
+  cursor: pointer;
+  transition: transform 0.15s, background-color 0.15s;
+}
+.t-btn:hover {
+  background: #1a1a1a;
+  transform: translateY(-1px);
+}
+.t-btn.ghost {
+  background: var(--white);
+  color: var(--ink);
+  border: 1.5px solid var(--border);
+}
+.t-btn.ghost:hover {
+  border-color: var(--mint);
+  background: var(--mint-soft);
+}
+.t-btn.done {
+  background: var(--green-dark);
+  cursor: default;
+}
+
+/* ── The gate ─────────────────────────────────────────────── */
+.gate-zone {
+  position: relative;
+  margin-top: 18px;
+}
+.gate-zone .t-grid {
+  filter: blur(9px) saturate(0.9);
+  pointer-events: none;
+  user-select: none;
+  transition: filter 0.7s ease;
+}
+.gate-zone.unlocked .t-grid {
+  filter: none;
+  pointer-events: auto;
+  user-select: auto;
+}
+/* soft fade so the blur reads as "more content", not a wall */
+.gate-zone::before {
+  content: "";
+  position: absolute;
+  top: -70px;
+  left: 0;
+  right: 0;
+  height: 70px;
+  background: linear-gradient(to bottom, rgba(250, 250, 247, 0), var(--off-white));
+  pointer-events: none;
+}
+.gate-zone.unlocked::before {
+  display: none;
+}
+.gate-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding-top: clamp(28px, 6vw, 72px);
+  z-index: 5;
+}
+.gate-card {
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  box-shadow: 0 20px 60px rgba(11, 30, 63, 0.16);
+  padding: clamp(24px, 4vw, 36px);
+  max-width: 440px;
+  width: calc(100% - 32px);
+  text-align: center;
+  position: sticky;
+  top: 24px;
+}
+.gate-card h2 {
+  font-size: clamp(21px, 3vw, 26px);
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  margin: 0 0 6px;
+}
+.gate-card p {
+  font-size: 14px;
+  color: var(--gray-600);
+  margin: 0 0 18px;
+}
+.gate-form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.gate-input {
+  font-family: inherit;
+  font-size: 15px;
+  padding: 13px 15px;
+  border-radius: 12px;
+  border: 1.5px solid var(--border);
+  outline: none;
+  transition: border-color 0.2s;
+}
+.gate-input:focus {
+  border-color: var(--green);
+}
+.gate-submit {
+  background: var(--black);
+  color: #fff;
+  font-size: 15px;
+  font-weight: 700;
+  padding: 14px;
+  border-radius: 999px;
+  border: none;
+  cursor: pointer;
+  transition: transform 0.15s, background-color 0.15s;
+}
+.gate-submit:hover {
+  background: #7dd5a0;
+  color: #000;
+  transform: translateY(-1px);
+}
+.gate-submit:disabled {
+  opacity: 0.6;
+  cursor: wait;
+  transform: none;
+}
+.gate-error {
+  font-size: 13px;
+  color: #c0392b;
+  margin: 4px 0 0;
+}
+.gate-privacy {
+  font-size: 11.5px;
+  color: var(--gray-400);
+  margin-top: 12px;
+}
+
+/* Footer */
+.site-footer {
+  background: var(--off-white);
+  padding: 24px 24px 40px;
+  border-top: 1px solid var(--border);
+  color: var(--gray-500);
+  font-size: 12.5px;
+}
+.footer-row {
+  max-width: 1180px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+.site-footer a {
+  color: var(--gray-600);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  .hero-eyebrow .pulse { animation: none; }
+  .gate-zone .t-grid { transition: none; }
+}
