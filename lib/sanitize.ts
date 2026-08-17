@@ -1,19 +1,24 @@
-// Server-side availability sanitization.
+// Server-side availability sanitization. Runs on Vercel inside ISR
+// revalidation (hourly) — hired and on-trial VAs drop automatically.
 //
-// A talent is dropped from the page when their Workable email matches
-// any of email / communication_email / wise_email of a Coconut Hub user
-// with role = 'va' (i.e. they're on payroll => hired).
+// Rule (confirmed against Hub schema):
+//   A talent is UNAVAILABLE when their Workable email matches a Hub user
+//   (email / communication_email / wise_email) who has at least one
+//   va_client_assignments row with is_active = true AND
+//   deal_stage IN ('active', 'trial').
 //
-// This runs inside ISR revalidation (see app page: revalidate = 3600),
-// so hired VAs disappear automatically within an hour, no redeploy needed.
-// Talents without a workableEmail are kept (fail-open) but reported so
-// the gap is visible in logs.
+//   Floating VAs and VAs with no active assignment stay on the page —
+//   they are exactly the available inventory.
+//
+// Talents without a workableEmail are kept (fail-open) but logged.
 
 import { createClient } from "@supabase/supabase-js";
 import { TALENTS, Talent } from "@/data/talents";
 
 const HUB_URL = process.env.HUB_SUPABASE_URL;
 const HUB_KEY = process.env.HUB_SUPABASE_SERVICE_ROLE_KEY;
+
+const UNAVAILABLE_STAGES = ["active", "trial"];
 
 export async function getAvailableTalents(): Promise<{
   talents: Talent[];
@@ -23,7 +28,6 @@ export async function getAvailableTalents(): Promise<{
 
   const emails = TALENTS.map((t) => (t.workableEmail || "").trim().toLowerCase()).filter(Boolean);
 
-  // No emails configured yet, or Hub creds missing -> serve full list (fail-open).
   if (emails.length === 0 || !HUB_URL || !HUB_KEY) {
     if (!HUB_URL || !HUB_KEY) {
       console.warn("[sanitize] HUB env vars missing - serving unfiltered list");
@@ -34,22 +38,47 @@ export async function getAvailableTalents(): Promise<{
   try {
     const hub = createClient(HUB_URL, HUB_KEY, { auth: { persistSession: false } });
 
-    // Hub `users` is small (<300 rows), one query per email column keeps
-    // us well under the PostgREST 1,000-row server cap.
-    const hired = new Set<string>();
+    // Step 1: resolve emails -> Hub user ids (checking all 3 email columns).
+    // users table is small (<300 rows), well under the PostgREST 1,000-row cap.
+    const emailToUserIds = new Map<string, string[]>();
+    const userIdToEmail = new Map<string, string>();
+
     for (const col of ["email", "communication_email", "wise_email"] as const) {
       const { data, error } = await hub
         .from("users")
-        .select(`${col}`)
-        .eq("role", "va")
+        .select(`id, ${col}`)
         .in(col, emails);
       if (error) {
-        console.error(`[sanitize] Hub query failed on ${col}:`, error.message);
+        console.error(`[sanitize] Hub users query failed on ${col}:`, error.message);
         continue;
       }
-      for (const row of (data ?? []) as Record<string, string | null>[]) {
+      for (const row of (data ?? []) as { id: string; [k: string]: string | null }[]) {
         const v = row[col];
-        if (v) hired.add(v.trim().toLowerCase());
+        if (!v) continue;
+        const e = v.trim().toLowerCase();
+        userIdToEmail.set(row.id, e);
+        emailToUserIds.set(e, [...(emailToUserIds.get(e) ?? []), row.id]);
+      }
+    }
+
+    const matchedUserIds = Array.from(userIdToEmail.keys());
+    const unavailableEmails = new Set<string>();
+
+    // Step 2: which of those users have an active placement or trial?
+    if (matchedUserIds.length > 0) {
+      const { data, error } = await hub
+        .from("va_client_assignments")
+        .select("va_id, deal_stage, is_active")
+        .in("va_id", matchedUserIds)
+        .eq("is_active", true)
+        .in("deal_stage", UNAVAILABLE_STAGES);
+      if (error) {
+        console.error("[sanitize] Hub assignments query failed:", error.message);
+      } else {
+        for (const row of (data ?? []) as { va_id: string }[]) {
+          const e = userIdToEmail.get(row.va_id);
+          if (e) unavailableEmails.add(e);
+        }
       }
     }
 
@@ -59,9 +88,9 @@ export async function getAvailableTalents(): Promise<{
         console.warn(`[sanitize] talent ${t.id} (${t.name}) has no workableEmail - kept by default`);
         return true;
       }
-      const isHired = hired.has(e);
-      if (isHired) console.info(`[sanitize] dropping hired talent ${t.id} (${t.name})`);
-      return !isHired;
+      const unavailable = unavailableEmails.has(e);
+      if (unavailable) console.info(`[sanitize] dropping talent ${t.id} (${t.name}) - active/trial assignment`);
+      return !unavailable;
     });
 
     return { talents: available, lastChecked };
