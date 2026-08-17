@@ -10,6 +10,7 @@
 
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
+import { notifySlack } from "@/lib/slack";
 
 export const runtime = "nodejs";
 
@@ -98,21 +99,10 @@ export async function POST(req: NextRequest) {
     console.warn("[unlock] OS env vars missing - lead not synced");
   }
 
-  // Slack notification (best-effort)
-  const hook = process.env.SLACK_WEBHOOK_URL;
-  if (hook) {
-    try {
-      await fetch(hook, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          text: `:coconut: *New Top Talents lead*\n*${name}* — ${email}${source ? `\nSource: /${source}` : ""}`,
-        }),
-      });
-    } catch (err) {
-      console.error("[unlock] Slack notify failed:", err);
-    }
-  }
+  // Slack notification (best-effort; webhook or bot token — see lib/slack.ts)
+  await notifySlack(
+    `:coconut: *New Top Talents lead*\n*${name}* — ${email}${source ? `\nSource: /${source}` : ""}`
+  );
 
   const res = NextResponse.json({ ok: true });
   res.cookies.set("cva_tt_unlocked", "1", {
