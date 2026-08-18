@@ -152,15 +152,18 @@ export default function Showcase({
   const available = talents.filter((t) => t.status !== "hired");
   const hired = talents.filter((t) => t.status === "hired");
 
-  // Hired cards are mixed through the page: one in the open grid,
-  // the rest spread through the gated grid.
-  const free: PublicTalent[] = available.slice(0, freeCount);
+  // Hired cards live in the OPEN zone so every lead sees them, mixed with
+  // the free profiles, and the layout always closes rows of 3:
+  // row 1 -> open, open, hired · row 2 -> open, hired, hired.
+  // The gated zone keeps only available candidates (also multiples of 3).
+  const openAvailable = available.slice(0, freeCount);
   const gated: PublicTalent[] = available.slice(freeCount);
-  if (hired.length > 0) free.splice(Math.min(2, free.length), 0, hired[0]);
-  for (let i = 1; i < hired.length; i++) {
-    const pos = Math.min(i * 3 - 1, gated.length);
-    gated.splice(pos, 0, hired[i]);
-  }
+  const free: PublicTalent[] = [...openAvailable];
+  const mixPositions = [2, 4, 5]; // keeps rows of 3 with 3 open + 3 hired
+  hired.forEach((h, i) => {
+    const pos = mixPositions[i] ?? free.length;
+    free.splice(Math.min(pos, free.length), 0, h);
+  });
 
   useEffect(() => {
     if (localStorage.getItem(LS_KEY) === "1") setUnlocked(true);

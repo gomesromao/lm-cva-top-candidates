@@ -313,7 +313,7 @@ button {
   display: flex;
   align-items: flex-start;
   justify-content: center;
-  padding-top: clamp(28px, 6vw, 72px);
+  padding-top: clamp(16px, 3vw, 36px);
   z-index: 5;
 }
 .gate-card {
