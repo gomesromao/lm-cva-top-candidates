@@ -7,6 +7,7 @@
 // which survive Windows unzips and GitHub web uploads.
 
 import { cookies } from "next/headers";
+import { UNLOCK_VERSION } from "@/lib/unlockVersion";
 import Showcase from "@/components/Showcase";
 import { getAvailableTalents } from "@/lib/sanitize";
 import { toPublicTalent } from "@/data/talents";
@@ -23,7 +24,7 @@ export default async function Page({
   const { talents } = await getAvailableTalents();
   const publicTalents = talents.map(toPublicTalent);
   const source = (searchParams.src ?? "").slice(0, 60);
-  const alreadyUnlocked = cookies().get("cva_tt_unlocked")?.value === "1";
+  const alreadyUnlocked = cookies().get("cva_tt_unlocked")?.value === UNLOCK_VERSION;
 
   return (
     <Showcase

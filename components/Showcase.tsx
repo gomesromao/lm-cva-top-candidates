@@ -3,6 +3,8 @@
 import { useEffect, useRef, useState } from "react";
 import type { PublicTalent } from "@/data/talents";
 
+import { UNLOCK_VERSION } from "@/lib/unlockVersion";
+
 const LS_KEY = "cva_tt_unlocked";
 const LS_EMAIL = "cva_tt_email";
 
@@ -152,21 +154,20 @@ export default function Showcase({
   const available = talents.filter((t) => t.status !== "hired");
   const hired = talents.filter((t) => t.status === "hired");
 
-  // Hired cards live in the OPEN zone so every lead sees them, mixed with
-  // the free profiles, and the layout always closes rows of 3:
-  // row 1 -> open, open, hired · row 2 -> open, hired, hired.
-  // The gated zone keeps only available candidates (also multiples of 3).
-  const openAvailable = available.slice(0, freeCount);
+  // Row 1 (open): the 3 free profiles, so the gate form shows up right
+  // below the first row. Hired cards are mixed through the GATED grid;
+  // their blur + badge is per-card, so leads see "Hired Aug X" crisp
+  // even before unlocking. 6 available + 3 hired = 9 = clean rows of 3.
+  const free: PublicTalent[] = available.slice(0, freeCount);
   const gated: PublicTalent[] = available.slice(freeCount);
-  const free: PublicTalent[] = [...openAvailable];
-  const mixPositions = [2, 4, 5]; // keeps rows of 3 with 3 open + 3 hired
+  const mixPositions = [2, 4, 6]; // one hired per gated row; index 1 stays clear of the gate form
   hired.forEach((h, i) => {
-    const pos = mixPositions[i] ?? free.length;
-    free.splice(Math.min(pos, free.length), 0, h);
+    const pos = mixPositions[i] ?? gated.length;
+    gated.splice(Math.min(pos, gated.length), 0, h);
   });
 
   useEffect(() => {
-    if (localStorage.getItem(LS_KEY) === "1") setUnlocked(true);
+    if (localStorage.getItem(LS_KEY) === UNLOCK_VERSION) setUnlocked(true);
     track("page_view", source);
   }, [source]);
 
@@ -205,7 +206,7 @@ export default function Showcase({
         setError(data.error || "Something went wrong. Please try again.");
         return;
       }
-      localStorage.setItem(LS_KEY, "1");
+      localStorage.setItem(LS_KEY, UNLOCK_VERSION);
       localStorage.setItem(LS_EMAIL, email.trim().toLowerCase());
       track("form_submit", source);
       setUnlocked(true); // reveal in place — no reload, no redirect
@@ -304,8 +305,8 @@ export default function Showcase({
               {!unlocked && (
                 <div className="gate-overlay">
                   <div className="gate-card">
-                    <h2>{gated.length} more candidates</h2>
-                    <p>Tell us who you are and the full list opens right here.</p>
+                    <h2>Unlock {gated.filter((g) => g.status !== "hired").length} more candidates</h2>
+                    <p>Enter your email and the full list opens right here.</p>
                     <div className="gate-form">
                       <input
                         className="gate-input"

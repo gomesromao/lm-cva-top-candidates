@@ -282,13 +282,13 @@ button {
   position: relative;
   margin-top: 18px;
 }
-.gate-zone .t-grid {
+.gate-zone .t-grid .t-card:not(.hired-card) {
   filter: blur(9px) saturate(0.9);
   pointer-events: none;
   user-select: none;
   transition: filter 0.7s ease;
 }
-.gate-zone.unlocked .t-grid {
+.gate-zone.unlocked .t-grid .t-card:not(.hired-card) {
   filter: none;
   pointer-events: auto;
   user-select: auto;
@@ -414,7 +414,7 @@ button {
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
   .hero-eyebrow .pulse { animation: none; }
-  .gate-zone .t-grid { transition: none; }
+  .gate-zone .t-grid .t-card:not(.hired-card) { transition: none; }
 }
 
 /* ---------- rate badge ---------- */

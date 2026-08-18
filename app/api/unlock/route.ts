@@ -11,6 +11,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { notifySlack } from "@/lib/slack";
+import { UNLOCK_VERSION } from "@/lib/unlockVersion";
 
 export const runtime = "nodejs";
 
@@ -105,7 +106,7 @@ export async function POST(req: NextRequest) {
   );
 
   const res = NextResponse.json({ ok: true });
-  res.cookies.set("cva_tt_unlocked", "1", {
+  res.cookies.set("cva_tt_unlocked", UNLOCK_VERSION, {
     maxAge: 60 * 60 * 24 * 365,
     path: "/",
     sameSite: "lax",
