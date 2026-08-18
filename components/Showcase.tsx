@@ -23,6 +23,13 @@ function track(event: string, source: string, meta?: Record<string, unknown>) {
   }
 }
 
+function hiredLabel(iso?: string) {
+  if (!iso) return "Recently hired";
+  const d = new Date(iso + "T12:00:00Z");
+  if (isNaN(d.getTime())) return "Recently hired";
+  return `Hired ${d.toLocaleDateString("en-US", { month: "short", day: "numeric" })}`;
+}
+
 function TalentCard({
   t,
   blurred,
@@ -34,6 +41,32 @@ function TalentCard({
   onIntro: (t: PublicTalent) => void;
   introState: "idle" | "sending" | "done";
 }) {
+  // Recently hired: content fully blurred, badge on top, nothing clickable.
+  if (t.status === "hired") {
+    return (
+      <article className="t-card hired-card" aria-hidden="true">
+        <div className="hired-inner">
+          <div className="t-media">
+            <span className="t-ph" aria-hidden="true">{t.name.charAt(0)}</span>
+            {t.photoUrl && <img src={t.photoUrl} alt="" loading="lazy" />}
+          </div>
+          <div className="t-body">
+            <h3 className="t-name">{t.name}</h3>
+            <p className="t-role">{t.role}</p>
+            <div className="t-actions">
+              <span className="t-btn ghost">View profile</span>
+              <span className="t-btn">Request an intro</span>
+            </div>
+          </div>
+        </div>
+        <div className="hired-overlay">
+          <span className="hired-badge">{hiredLabel(t.hiredDate)}</span>
+          <span className="hired-sub">No longer available</span>
+        </div>
+      </article>
+    );
+  }
+
   return (
     <article className="t-card" aria-hidden={blurred}>
       {t.loomUrl ? (
@@ -46,7 +79,8 @@ function TalentCard({
           aria-label={`Watch ${t.name}'s intro video`}
         >
           <span className="t-ph" aria-hidden="true">{t.name.charAt(0)}</span>
-          {t.photoUrl && <img src={t.photoUrl} alt={`${t.name} — ${t.role}`} loading="lazy" />}
+          {t.photoUrl && <img src={t.photoUrl} alt={`${t.name}, ${t.role}`} loading="lazy" />}
+          {t.rate && <span className="t-rate">from {t.rate}<small>/mo</small></span>}
           <span className="t-watch">
             <span className="t-play-ic" aria-hidden="true" />
             Watch intro
@@ -55,7 +89,8 @@ function TalentCard({
       ) : (
         <div className="t-media">
           <span className="t-ph" aria-hidden="true">{t.name.charAt(0)}</span>
-          {t.photoUrl && <img src={t.photoUrl} alt={`${t.name} — ${t.role}`} loading="lazy" />}
+          {t.photoUrl && <img src={t.photoUrl} alt={`${t.name}, ${t.role}`} loading="lazy" />}
+          {t.rate && <span className="t-rate">from {t.rate}<small>/mo</small></span>}
         </div>
       )}
       <div className="t-body">
@@ -90,16 +125,17 @@ function TalentCard({
   );
 }
 
+const BOOK_URL =
+  "https://calendly.com/conor-coconutva/30min?utm_source=candidates-intro";
+
 export default function Showcase({
   talents,
   freeCount,
-  lastChecked,
   source,
   initiallyUnlocked,
 }: {
   talents: PublicTalent[];
   freeCount: number;
-  lastChecked: string;
   source: string;
   initiallyUnlocked: boolean;
 }) {
@@ -109,11 +145,22 @@ export default function Showcase({
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
   const [intro, setIntro] = useState<Record<string, "idle" | "sending" | "done">>({});
+  const [introModal, setIntroModal] = useState<PublicTalent | null>(null);
   const gateRef = useRef<HTMLDivElement>(null);
   const scrollTracked = useRef(false);
 
-  const free = talents.slice(0, freeCount);
-  const gated = talents.slice(freeCount);
+  const available = talents.filter((t) => t.status !== "hired");
+  const hired = talents.filter((t) => t.status === "hired");
+
+  // Hired cards are mixed through the page: one in the open grid,
+  // the rest spread through the gated grid.
+  const free: PublicTalent[] = available.slice(0, freeCount);
+  const gated: PublicTalent[] = available.slice(freeCount);
+  if (hired.length > 0) free.splice(Math.min(2, free.length), 0, hired[0]);
+  for (let i = 1; i < hired.length; i++) {
+    const pos = Math.min(i * 3 - 1, gated.length);
+    gated.splice(pos, 0, hired[i]);
+  }
 
   useEffect(() => {
     if (localStorage.getItem(LS_KEY) === "1") setUnlocked(true);
@@ -188,16 +235,11 @@ export default function Showcase({
       });
       track("intro_request", source, { candidateId: t.id });
       setIntro((s) => ({ ...s, [t.id]: "done" }));
+      setIntroModal(t); // let them book a call straight away
     } catch {
       setIntro((s) => ({ ...s, [t.id]: "idle" }));
     }
   }
-
-  const updatedDate = new Date(lastChecked).toLocaleDateString("en-US", {
-    month: "long",
-    day: "numeric",
-    year: "numeric",
-  });
 
   return (
     <>
@@ -219,11 +261,11 @@ export default function Showcase({
             <span className="pulse" />
             Available right now
           </span>
-          <h1>Top candidates, in the open</h1>
+          <h1>This month&apos;s top candidates</h1>
           <p className="lead">
-            A sample of the operators available right now. No pitch, no call required. Just look.
+            These are the people our clients are asking about right now. Watch a short
+            intro, dig into the full profile, and request an intro when someone stands out.
           </p>
-          <p className="last-updated">Availability last checked {updatedDate}</p>
         </div>
       </section>
 
@@ -295,12 +337,37 @@ export default function Showcase({
         </div>
       </section>
 
+      {introModal && (
+        <div className="intro-modal-backdrop" onClick={() => setIntroModal(null)}>
+          <div className="intro-modal" role="dialog" aria-modal="true" onClick={(e) => e.stopPropagation()}>
+            <button className="intro-modal-close" aria-label="Close" onClick={() => setIntroModal(null)}>×</button>
+            <h3>Request sent ✓</h3>
+            <p>
+              We&apos;ll reach out about {introModal.name} shortly. Want to move faster?
+              Grab a time now and we&apos;ll bring the details.
+            </p>
+            <a
+              className="t-btn modal-book"
+              href={BOOK_URL}
+              target="_blank"
+              rel="noopener"
+              onClick={() => track("intro_book_click", source, { candidateId: introModal.id })}
+            >
+              Book a call now
+            </a>
+            <button className="intro-modal-later" onClick={() => setIntroModal(null)}>
+              I&apos;ll wait for the email
+            </button>
+          </div>
+        </div>
+      )}
+
       <footer className="site-footer">
         <div className="footer-row">
           <span>© {new Date().getFullYear()} Coconut VA</span>
           <span>
             Want to be removed from this page?{" "}
-            <a href="mailto:hr@coconutva.com">Email us</a> — we act fast.
+            <a href="mailto:hr@coconutva.com">Email us</a> and we act fast.
           </span>
         </div>
       </footer>

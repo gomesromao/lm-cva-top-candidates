@@ -6,167 +6,180 @@
 // Run `npm run fetch-emails` with WORKABLE_API_KEY set to resolve them
 // automatically from the Workable candidate IDs.
 
+export type TalentStatus = "available" | "hired";
+
 export type Talent = {
   /** Workable candidate ID (same ID used by workable-profile.lovable.app) */
   id: string;
   /** First name + last initial only (privacy rule from the brief) */
   name: string;
   role: string;
-  category: "Executive & Operations" | "Marketing & Tech" | "Specialists";
-  /** e.g. "6+ years" — TODO: fill from resumes */
+  category: "Operations & Admin" | "Marketing & Creatives" | "Tech & Automation";
+  /** Asking rate, e.g. "$1,800" (rendered as "from $1,800/mo") */
+  rate?: string;
+  /** e.g. "6+ years" */
   experience?: string;
-  /** Tools & systems they know — TODO: fill from resumes */
   tools?: string[];
-  /** 2–3 sentence summary of what they've actually done — TODO */
   summary?: string;
   /** "Full time" | "Part time" + start window */
   availability?: string;
   loomUrl?: string;
   photoUrl?: string;
-  profileUrl: string;
-  /** SERVER-ONLY. Never expose. Used to drop hired VAs (Hub cross-check). */
+  profileUrl?: string;
+  /**
+   * "available" (default) or "hired". Hired talents render as fully
+   * blurred cards with a "Hired <date>" badge, mixed through the grid.
+   * Set manually here OR flipped automatically by lib/sanitize.ts when
+   * the Hub shows an active (non-trial) placement for the VA.
+   */
+  status?: TalentStatus;
+  /** ISO date the VA was hired (shown on the hired badge) */
+  hiredDate?: string;
+  /** SERVER-ONLY. Never expose. Used for the Hub cross-check. */
   workableEmail?: string;
 };
 
 export const TALENTS: Talent[] = [
+  // ---------------- Operations & Admin ----------------
   {
-    id: "2550a857",
-    name: "Paul",
-    role: "Executive Assistant",
-    category: "Executive & Operations",
-    availability: "Full time · can start now",
-    loomUrl: "https://www.loom.com/share/de12074580324bb9a5424cce09a3d322",
-    photoUrl: "https://mcusercontent.com/f446058f113961954b0efff8f/images/6cc90828-2217-67f4-ab7f-bdb17557f599.png",
-    profileUrl: "https://workable-profile.lovable.app/candidate/2550a857",
-    workableEmail: "",
-  },
-  {
-    id: "25b7cf68",
-    name: "MJ",
-    role: "Sales Development Specialist",
-    category: "Executive & Operations",
-    availability: "Full time · can start now",
-    loomUrl: "https://www.loom.com/share/8dfee457e8824e648a38a05bc60fb9fa",
-    photoUrl: "https://mcusercontent.com/f446058f113961954b0efff8f/images/2a998eb9-ecf6-d28b-4bb8-e186f922ae7d.png",
-    profileUrl: "https://workable-profile.lovable.app/candidate/25b7cf68",
-    workableEmail: "",
-  },
-  {
-    id: "258bfb9f",
-    name: "Chin",
-    role: "Executive Sales Manager",
-    category: "Executive & Operations",
-    availability: "Full time · can start now",
-    loomUrl: "https://www.loom.com/share/1c4cc2fc54ba438cbe9fcb60d5e2b11a",
-    photoUrl: "https://mcusercontent.com/f446058f113961954b0efff8f/images/5d37742f-4580-bba4-8b3a-c9153fdc73da.png",
-    profileUrl: "https://workable-profile.lovable.app/candidate/258bfb9f",
-    workableEmail: "",
-  },
-  {
-    id: "25a08972",
-    name: "Glo",
+    id: "272ede3f",
+    name: "Fernanda",
     role: "Project Manager",
-    category: "Executive & Operations",
+    category: "Operations & Admin",
+    rate: "$900",
     availability: "Full time · can start now",
-    loomUrl: "https://www.loom.com/share/2af2b017d92e4cffa6326edd115d867f",
-    photoUrl: "https://mcusercontent.com/f446058f113961954b0efff8f/images/b069ecb8-ea0b-ebcd-6beb-87e8a33bafe4.png",
-    profileUrl: "https://workable-profile.lovable.app/candidate/25a08972",
+    loomUrl: "https://www.loom.com/share/3ec60bc314b24f92a6274af7999267e7",
+    photoUrl: "https://mcusercontent.com/f446058f113961954b0efff8f/images/85e7c94b-129d-732f-71e7-5c4af9a4be79.png",
+    profileUrl: "https://workable-profile.lovable.app/candidate/272ede3f",
     workableEmail: "",
   },
   {
-    id: "25bb2af7",
-    name: "Chrisanne",
-    role: "Software Engineer",
-    category: "Marketing & Tech",
+    id: "2727cfab",
+    name: "Patricia",
+    role: "Executive Assistant",
+    category: "Operations & Admin",
+    rate: "$1,800",
     availability: "Full time · can start now",
-    loomUrl: "https://www.loom.com/share/3c351073ab7040f9ae5b6e739d17c07c",
-    photoUrl: "https://mcusercontent.com/f446058f113961954b0efff8f/images/8353b5db-749a-204b-7bd1-2265eb4d2a9f.png",
-    profileUrl: "https://workable-profile.lovable.app/candidate/25bb2af7",
+    loomUrl: "https://drive.google.com/file/d/1wO-Y1_qbirGpBQJoSsxIXaAagaLgyQ_T/view",
+    photoUrl: "https://mcusercontent.com/f446058f113961954b0efff8f/images/cb5929b1-9c10-96ca-2468-e362583980cf.png",
+    profileUrl: "https://workable-profile.lovable.app/candidate/2727cfab",
     workableEmail: "",
   },
   {
-    id: "252891c0",
-    name: "Jaspher",
-    role: "Automations Specialist",
-    category: "Marketing & Tech",
+    id: "2727c90e",
+    name: "Joseph",
+    role: "Operations Manager",
+    category: "Operations & Admin",
+    rate: "$2,750",
     availability: "Full time · can start now",
-    loomUrl: "https://www.loom.com/share/873a500e61414674966094f1772b2f95",
-    photoUrl: "https://mcusercontent.com/f446058f113961954b0efff8f/images/cd729112-442e-161b-f467-8d2551ef8f74.png",
-    profileUrl: "https://workable-profile.lovable.app/candidate/252891c0",
+    loomUrl: "https://www.loom.com/share/8f532ccd2c19484b94999780901f5010",
+    photoUrl: "https://mcusercontent.com/f446058f113961954b0efff8f/images/da32d352-5e55-bbad-5c3a-73d28b751632.png",
+    profileUrl: "https://workable-profile.lovable.app/candidate/2727c90e",
     workableEmail: "",
   },
+  // ---------------- Marketing & Creatives ----------------
   {
-    id: "259f4b3d",
-    name: "Angela",
+    id: "2586561b",
+    name: "Neil",
     role: "Social Media Manager",
-    category: "Marketing & Tech",
+    category: "Marketing & Creatives",
+    rate: "$900",
     availability: "Full time · can start now",
-    loomUrl: "https://drive.google.com/file/d/1a_bBCBnpnJ-UblcssGKuNJSHLcXR4GnG/view?usp=sharing",
-    photoUrl: "https://mcusercontent.com/f446058f113961954b0efff8f/images/649e6a0d-2b86-6f62-16a4-8f068b7a9d21.png",
-    profileUrl: "https://workable-profile.lovable.app/candidate/259f4b3d",
-    // NOTE: likely already hired (Hub has an active VA named Angela).
-    // Once workableEmail is filled, she should drop from the page
-    // automatically — use this as the sanitization test case.
+    loomUrl: "https://www.loom.com/share/febec9b066de47029aee15ef8d5b9a71",
+    photoUrl: "https://mcusercontent.com/f446058f113961954b0efff8f/images/5aa35321-12d3-3aa0-30cd-ba16312e6d86.png",
+    profileUrl: "https://workable-profile.lovable.app/candidate/2586561b",
     workableEmail: "",
   },
   {
-    id: "254e01e1",
-    name: "Kaycee",
-    role: "Marketing / SEO Specialist",
-    category: "Marketing & Tech",
+    id: "2769725c",
+    name: "Francis",
+    role: "Senior UI/UX Designer",
+    category: "Marketing & Creatives",
+    rate: "$1,450",
     availability: "Full time · can start now",
-    loomUrl: "https://www.loom.com/share/007fcbb026f54578a71dd4e62f73a4e8",
-    photoUrl: "https://mcusercontent.com/f446058f113961954b0efff8f/images/38f10756-5cbe-94c0-b18b-7501edb5c1a5.png",
-    profileUrl: "https://workable-profile.lovable.app/candidate/254e01e1",
+    loomUrl: "https://drive.google.com/file/d/1X3NnA2hZsdRdKSH1Pn6tnTSUxKUmRzjH/view",
+    photoUrl: "https://mcusercontent.com/f446058f113961954b0efff8f/images/118d54e7-2190-fb14-b07e-79578fd27358.png",
+    profileUrl: "https://workable-profile.lovable.app/candidate/2769725c",
     workableEmail: "",
   },
   {
-    id: "2578106a",
-    name: "Harsh",
-    role: "AI Automations Specialist",
-    category: "Specialists",
+    id: "26ef67a7",
+    name: "Reymark",
+    role: "Website Designer",
+    category: "Marketing & Creatives",
+    rate: "$1,800",
     availability: "Full time · can start now",
-    loomUrl: "https://www.loom.com/share/4f43a36685024bd584ed915a442b2114",
-    photoUrl: "https://mcusercontent.com/f446058f113961954b0efff8f/images/2657efc5-7dca-eaaa-8e5a-5436c4516ce9.png",
-    profileUrl: "https://workable-profile.lovable.app/candidate/2578106a",
+    loomUrl: "https://www.loom.com/share/f2ee6f53f6c9406eb5949ff77be6d875",
+    photoUrl: "https://mcusercontent.com/f446058f113961954b0efff8f/images/9fe329e4-5ca5-3c46-5189-00c5a92c9ad1.png",
+    profileUrl: "https://workable-profile.lovable.app/candidate/26ef67a7",
+    workableEmail: "",
+  },
+  // ---------------- Tech & Automation ----------------
+  {
+    id: "27511687",
+    name: "Princess",
+    role: "AI Automation",
+    category: "Tech & Automation",
+    rate: "$2,500",
+    availability: "Full time · can start now",
+    loomUrl: "https://www.loom.com/share/ba85088f3a4844fcaffedf0fc0910136",
+    photoUrl: "https://mcusercontent.com/f446058f113961954b0efff8f/images/9bb09707-58be-ec05-829b-23a7b539812b.png",
+    profileUrl: "https://workable-profile.lovable.app/candidate/27511687",
     workableEmail: "",
   },
   {
-    id: "2184dee4",
-    name: "Annmarie",
-    role: "Social Media / Marketing",
-    category: "Specialists",
+    id: "269d87b0",
+    name: "Rafael",
+    role: "Automation Engineer",
+    category: "Tech & Automation",
+    rate: "$7,500",
     availability: "Full time · can start now",
-    loomUrl: "https://www.loom.com/share/97f8b4f8d5be4614ba590a471fca8814",
-    photoUrl: "https://mcusercontent.com/f446058f113961954b0efff8f/images/779d52ab-14a2-9892-892a-1a1783977898.png",
-    profileUrl: "https://workable-profile.lovable.app/candidate/2184dee4",
+    loomUrl: "https://drive.google.com/file/d/1Qf2j0naOKFR8UAgIRhbYLC8kXULxt8hy/view",
+    photoUrl: "https://mcusercontent.com/f446058f113961954b0efff8f/images/db753047-f9fc-408f-bf19-0f27952bd86f.png",
+    profileUrl: "https://workable-profile.lovable.app/candidate/269d87b0",
     workableEmail: "",
   },
   {
-    id: "24a333ce",
-    name: "Abdus",
-    role: "Data Analyst",
-    category: "Specialists",
+    id: "2727d8b9",
+    name: "Oliver",
+    role: "Software Engineer",
+    category: "Tech & Automation",
+    rate: "$10,000",
     availability: "Full time · can start now",
-    loomUrl: "https://www.loom.com/share/301e245cacbd40e483af2e50a9bca947",
-    photoUrl: "https://mcusercontent.com/f446058f113961954b0efff8f/images/7a998baa-cccf-cb3a-4262-9429d1029fc9.png",
-    profileUrl: "https://workable-profile.lovable.app/candidate/24a333ce",
+    loomUrl: "https://youtu.be/unSlTwvZZeA",
+    photoUrl: "https://mcusercontent.com/f446058f113961954b0efff8f/images/672d914f-f898-17cb-acd1-9704f18d5271.png",
+    profileUrl: "https://workable-profile.lovable.app/candidate/2727d8b9",
     workableEmail: "",
   },
+  // ---------------- Recently hired (urgency cards) ----------------
+  // Real placements from the Hub (active, non-trial, PT20/FT40).
+  // Fully blurred on the page with a "Hired <date>" badge.
   {
-    id: "24b7eab4",
-    name: "Yago",
-    role: "Software Developer",
-    category: "Specialists",
-    availability: "Full time · can start now",
-    loomUrl: "https://www.loom.com/share/e35182e88a154fb192bdd010ed39b977",
-    photoUrl: "https://mcusercontent.com/f446058f113961954b0efff8f/images/4007e2df-4dc1-22dc-5135-7ae22377673e.png",
-    profileUrl: "https://workable-profile.lovable.app/candidate/24b7eab4",
-    workableEmail: "",
+    id: "hired-alessandra",
+    name: "Alessandra O.",
+    role: "Quality Assurance Specialist",
+    category: "Operations & Admin",
+    status: "hired",
+    hiredDate: "2026-08-10",
+  },
+  {
+    id: "hired-mariah",
+    name: "Mariah A.",
+    role: "Executive Assistant",
+    category: "Operations & Admin",
+    status: "hired",
+    hiredDate: "2026-08-04",
+  },
+  {
+    id: "hired-richel",
+    name: "Richel J.",
+    role: "AP/AR Specialist",
+    category: "Tech & Automation",
+    status: "hired",
+    hiredDate: "2026-08-03",
   },
 ];
 
-/** Public shape sent to the browser. Strips workableEmail and anything sensitive. */
 export type PublicTalent = Omit<Talent, "workableEmail">;
 
 export function toPublicTalent(t: Talent): PublicTalent {

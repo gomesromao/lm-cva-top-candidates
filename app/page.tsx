@@ -1,5 +1,6 @@
 // Server component with ISR: the talent list is re-sanitized against
-// Coconut Hub every hour, so hired/on-trial VAs drop off automatically.
+// Coconut Hub every hour. Hired VAs become blurred "recently hired"
+// cards automatically; on-trial VAs drop off.
 //
 // Vanity URLs per podcast (candidates.coconutva.com/showname) are
 // rewritten to /?src=showname by middleware.ts — no bracket folders,
@@ -19,7 +20,7 @@ export default async function Page({
 }: {
   searchParams: { src?: string };
 }) {
-  const { talents, lastChecked } = await getAvailableTalents();
+  const { talents } = await getAvailableTalents();
   const publicTalents = talents.map(toPublicTalent);
   const source = (searchParams.src ?? "").slice(0, 60);
   const alreadyUnlocked = cookies().get("cva_tt_unlocked")?.value === "1";
@@ -28,7 +29,6 @@ export default async function Page({
     <Showcase
       talents={publicTalents}
       freeCount={FREE_PROFILES}
-      lastChecked={lastChecked}
       source={source}
       initiallyUnlocked={alreadyUnlocked}
     />
