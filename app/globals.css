@@ -538,3 +538,10 @@ button {
 }
 .t-media .t-rate { z-index: 3; }
 .t-media .t-watch { z-index: 3; text-decoration: none; }
+
+/* centered card body copy (name / role / availability) */
+.t-body .t-name,
+.t-body .t-role,
+.t-body .t-meta {
+  text-align: center;
+}

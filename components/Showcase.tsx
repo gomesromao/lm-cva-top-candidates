@@ -88,18 +88,6 @@ function TalentCard({
             />
           )}
           {t.rate && <span className="t-rate">from {t.rate}<small>/mo</small></span>}
-          {/* The pill stays a direct shortcut to the intro video. */}
-          <a
-            className="t-watch"
-            href={blurred ? undefined : t.loomUrl}
-            target="_blank"
-            rel="noopener"
-            tabIndex={blurred ? -1 : 0}
-            aria-label={`Watch ${t.name}'s intro video`}
-          >
-            <span className="t-play-ic" aria-hidden="true" />
-            Watch intro
-          </a>
         </div>
       ) : (
         <div className="t-media">
