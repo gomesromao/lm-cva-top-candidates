@@ -357,6 +357,7 @@ button {
   border-color: var(--green);
 }
 .gate-submit {
+  margin-top: 14px;
   background: var(--black);
   color: #fff;
   font-size: 15px;
@@ -528,3 +529,12 @@ button {
   color: #9a9a9a;
   cursor: pointer;
 }
+
+/* photo click -> profile page (stretched link under the watch pill) */
+.t-media-link {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+}
+.t-media .t-rate { z-index: 3; }
+.t-media .t-watch { z-index: 3; text-decoration: none; }

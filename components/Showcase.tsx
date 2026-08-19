@@ -7,6 +7,7 @@ import { UNLOCK_VERSION } from "@/lib/unlockVersion";
 
 const LS_KEY = "cva_tt_unlocked";
 const LS_EMAIL = "cva_tt_email";
+const LS_SRC = "cva_tt_src";
 
 function track(event: string, source: string, meta?: Record<string, unknown>) {
   try {
@@ -72,22 +73,34 @@ function TalentCard({
   return (
     <article className="t-card" aria-hidden={blurred}>
       {t.loomUrl ? (
-        <a
-          className="t-media"
-          href={blurred ? undefined : t.loomUrl}
-          target="_blank"
-          rel="noopener"
-          tabIndex={blurred ? -1 : 0}
-          aria-label={`Watch ${t.name}'s intro video`}
-        >
+        <div className="t-media">
           <span className="t-ph" aria-hidden="true">{t.name.charAt(0)}</span>
           {t.photoUrl && <img src={t.photoUrl} alt={`${t.name}, ${t.role}`} loading="lazy" />}
+          {/* Default click on the photo -> full profile (resume + intro video). */}
+          {t.profileUrl && (
+            <a
+              className="t-media-link"
+              href={blurred ? undefined : t.profileUrl}
+              target="_blank"
+              rel="noopener"
+              tabIndex={blurred ? -1 : 0}
+              aria-label={`View ${t.name}'s profile`}
+            />
+          )}
           {t.rate && <span className="t-rate">from {t.rate}<small>/mo</small></span>}
-          <span className="t-watch">
+          {/* The pill stays a direct shortcut to the intro video. */}
+          <a
+            className="t-watch"
+            href={blurred ? undefined : t.loomUrl}
+            target="_blank"
+            rel="noopener"
+            tabIndex={blurred ? -1 : 0}
+            aria-label={`Watch ${t.name}'s intro video`}
+          >
             <span className="t-play-ic" aria-hidden="true" />
             Watch intro
-          </span>
-        </a>
+          </a>
+        </div>
       ) : (
         <div className="t-media">
           <span className="t-ph" aria-hidden="true">{t.name.charAt(0)}</span>
@@ -127,8 +140,13 @@ function TalentCard({
   );
 }
 
-const BOOK_URL =
-  "https://calendly.com/conor-coconutva/30min?utm_source=candidates-intro";
+const BOOK_URL_BASE = "https://calendly.com/conor-coconutva/30min";
+
+/** /something -> utm_source=lm_top_talents_something (default: candidates-intro) */
+function bookUrl(src: string) {
+  const utm = src ? `lm_top_talents_${src}` : "candidates-intro";
+  return `${BOOK_URL_BASE}?utm_source=${encodeURIComponent(utm)}`;
+}
 
 export default function Showcase({
   talents,
@@ -148,6 +166,7 @@ export default function Showcase({
   const [error, setError] = useState("");
   const [intro, setIntro] = useState<Record<string, "idle" | "sending" | "done">>({});
   const [introModal, setIntroModal] = useState<PublicTalent | null>(null);
+  const [effectiveSource, setEffectiveSource] = useState(source);
   const gateRef = useRef<HTMLDivElement>(null);
   const scrollTracked = useRef(false);
 
@@ -168,7 +187,16 @@ export default function Showcase({
 
   useEffect(() => {
     if (localStorage.getItem(LS_KEY) === UNLOCK_VERSION) setUnlocked(true);
-    track("page_view", source);
+    // Persist the vanity slug so attribution survives later visits
+    // (direct returns, the Calendly hop, etc.).
+    if (source) {
+      localStorage.setItem(LS_SRC, source);
+      setEffectiveSource(source);
+    } else {
+      const stored = localStorage.getItem(LS_SRC) || "";
+      if (stored) setEffectiveSource(stored);
+    }
+    track("page_view", source || localStorage.getItem(LS_SRC) || "");
   }, [source]);
 
   // scroll_to_gate: fires once when the gate enters the viewport
@@ -178,7 +206,7 @@ export default function Showcase({
       (entries) => {
         if (entries.some((e) => e.isIntersecting) && !scrollTracked.current) {
           scrollTracked.current = true;
-          track("scroll_to_gate", source);
+          track("scroll_to_gate", effectiveSource);
           obs.disconnect();
         }
       },
@@ -186,7 +214,7 @@ export default function Showcase({
     );
     obs.observe(gateRef.current);
     return () => obs.disconnect();
-  }, [unlocked, source]);
+  }, [unlocked, effectiveSource]);
 
   async function handleSubmit() {
     setError("");
@@ -199,7 +227,7 @@ export default function Showcase({
       const res = await fetch("/api/unlock", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name: name.trim(), email: email.trim(), source }),
+        body: JSON.stringify({ name: name.trim(), email: email.trim(), source: effectiveSource }),
       });
       const data = await res.json();
       if (!res.ok || !data.ok) {
@@ -208,7 +236,7 @@ export default function Showcase({
       }
       localStorage.setItem(LS_KEY, UNLOCK_VERSION);
       localStorage.setItem(LS_EMAIL, email.trim().toLowerCase());
-      track("form_submit", source);
+      track("form_submit", effectiveSource);
       setUnlocked(true); // reveal in place — no reload, no redirect
     } catch {
       setError("Network error. Please try again.");
@@ -237,7 +265,7 @@ export default function Showcase({
           source,
         }),
       });
-      track("intro_request", source, { candidateId: t.id });
+      track("intro_request", effectiveSource, { candidateId: t.id });
       setIntro((s) => ({ ...s, [t.id]: "done" }));
       setIntroModal(t); // let them book a call straight away
     } catch {
@@ -305,8 +333,8 @@ export default function Showcase({
               {!unlocked && (
                 <div className="gate-overlay">
                   <div className="gate-card">
-                    <h2>Unlock {gated.filter((g) => g.status !== "hired").length} more candidates</h2>
-                    <p>Enter your email and the full list opens right here.</p>
+                    <h2>Unlock the full list</h2>
+                    <p>Enter your email and every candidate opens right here.</p>
                     <div className="gate-form">
                       <input
                         className="gate-input"
@@ -330,9 +358,6 @@ export default function Showcase({
                       </button>
                       {error && <p className="gate-error">{error}</p>}
                     </div>
-                    <p className="gate-privacy">
-                      No spam, no phone calls. Just the list.
-                    </p>
                   </div>
                 </div>
               )}
@@ -352,10 +377,10 @@ export default function Showcase({
             </p>
             <a
               className="t-btn modal-book"
-              href={BOOK_URL}
+              href={bookUrl(effectiveSource)}
               target="_blank"
               rel="noopener"
-              onClick={() => track("intro_book_click", source, { candidateId: introModal.id })}
+              onClick={() => track("intro_book_click", effectiveSource, { candidateId: introModal.id })}
             >
               Book a call now
             </a>

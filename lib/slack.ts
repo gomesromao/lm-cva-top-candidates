@@ -10,11 +10,15 @@ export async function notifySlack(text: string): Promise<void> {
 
   try {
     if (webhook) {
-      await fetch(webhook, {
+      const res = await fetch(webhook, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ text }),
       });
+      if (!res.ok) {
+        const body = await res.text().catch(() => "");
+        console.error(`[slack] webhook failed: ${res.status} ${body}`);
+      }
       return;
     }
     if (botToken && channel) {
